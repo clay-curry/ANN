@@ -22,7 +22,7 @@ def sigmoid(x, ddx=False):
 def half_SSE(x, y, ddx=False):
     if ddx:
         return np.subtract(x,y)
-    return np.norm(x-y)**2 / 2
+    return np.linalg.norm(x-y)**2 / 2
 
 
 class ANN:
@@ -58,7 +58,7 @@ class ANN:
 
         
 
-    def eval(self, input: List[float]):         
+    def eval(self, input):         
         L = self.num_layers - 1         # Output should be linear <=> skip ReLU on layer L
         W_list = self.weight_mat_list   # Alias for readability
         z = np.reshape(input, (1,-1))   # 0. store inputs as a column vector
@@ -79,7 +79,10 @@ class ANN:
         self.last_a = a_hist            # 9. Required for backprop
         return a
 
-    def back_prop(self, expected_output: List[float], learning_rate=0.0001):
+    def back_prop(self, expected_output: List[float], input=None, learning_rate=0.0001):
+        if input!=None:
+            self.eval(input)        
+        
         N = self.num_layers                             # back prop starts at N, moves toward 0
         weights = self.weight_mat_list                  # weights[j] - maps layer j to j+1
         summation_vector = self.last_z                  # last AN summations  (last_z[0] = input)
@@ -106,34 +109,39 @@ class ANN:
 
 
 
-
 if __name__ == "__main__":
     rng = np.random.default_rng()
-    L1 = rng.standard_normal((4,2))
-    L2 = rng.standard_normal((4,4))
-    L3 = rng.standard_normal((3,4))
-
-    
-    weight_matrices = [L1, L2, L3]
-
-
+    L1 = rng.standard_normal((4,1))
+    L3 = rng.standard_normal((1,4))    
+    weight_matrices = [L1, L3]
     ann = ANN(weight_matrices, activation=leaky_ReLU, cost=half_SSE)
 
-    out = ann.eval(input=[1,2])
-    print(out)
-
-    for i in range(100):
-        ann.back_prop([1,0,1], learning_rate=.9)
-        ann.eval(input=[1,2])
-        ann.back_prop([1,0,1], learning_rate=.9)
-        ann.eval(input=[1,2])
-        ann.back_prop([1,0,1])
-        ann.eval(input=[1,2])
-        ann.back_prop([1,0,1])
-
-
-
-    out = ann.eval(input=[1,2])
-    print(out)
+    f1 = lambda x : x**4 - 22*x**2
     
+    train_input = np.random.uniform(low=(-5.0), high=(5.0), size=(30))
+    validate_input = np.random.uniform(low=(-5.0), high=(5.0), size=(10))
+    test_input = np.linspace(start=(-5.0), stop=(5.0), num=200)
     
+    train_output = f1(train_input)
+    validate_output = f1(validate_input)
+    test_output = f1(test_input)
+
+    out = []
+    for x in test_input:
+        out.append(ann.eval(x))
+    print(f'before out: {np.mean(out)}')
+    print(f'before cost: {ann.cost(out,test_output)}')
+
+
+    # Stochastic gradient descent
+    train_input_size = len(train_input)
+    num_epochs = 5
+    for i in range(train_input_size*num_epochs):
+        ann.back_prop(expected_output=train_output[i%train_input_size],
+        input=train_input[i%train_input_size], learning_rate=0.001)
+
+    for x in test_input:
+        out.append(ann.eval(x))
+    
+    print(f'after out: {np.mean(out)}')
+    print(f'after cost: {ann.cost(out,test_output)}')
