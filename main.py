@@ -122,13 +122,14 @@ if __name__ == "__main__":
     out = ann.eval(input=[1,2])
     print(out)
 
-    ann.back_prop([1,0,1], learning_rate=.9)
-    ann.eval(input=[1,2])
-    ann.back_prop([1,0,1], learning_rate=.9)
-    ann.eval(input=[1,2])
-    ann.back_prop([1,0,1])
-    ann.eval(input=[1,2])
-    ann.back_prop([1,0,1])
+    for i in range(100):
+        ann.back_prop([1,0,1], learning_rate=.9)
+        ann.eval(input=[1,2])
+        ann.back_prop([1,0,1], learning_rate=.9)
+        ann.eval(input=[1,2])
+        ann.back_prop([1,0,1])
+        ann.eval(input=[1,2])
+        ann.back_prop([1,0,1])
 
 
 
