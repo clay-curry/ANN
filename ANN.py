@@ -110,15 +110,36 @@ class ANN:
 
 
 if __name__ == "__main__":
-    rng = np.random.default_rng()
-    L1 = rng.standard_normal((4,1))
-    L3 = rng.standard_normal((1,4))    
-    weight_matrices = [L1, L3]
-    ann = ANN(weight_matrices, activation=leaky_ReLU, cost=half_SSE)
+    np.random.seed(seed=None)
+    L1 = np.ones(shape=(3,1))
+    L2 = np.ones(shape=(20,3))
+    L3 = np.ones(shape=(1,20))    
+    weight_matrices = [L1,L2, L3]
+    ann = ANN(weight_matrices, activation=tanh, cost=half_SSE)
+
 
     f1 = lambda x : x**4 - 22*x**2
+    x = np.random.uniform(low=(-5.0), high=(5.0), size=(3))
+    y = f1(x)
+
+    for i in range(50):
+        print(f"Trained {i} times")
+        for i in range(len(x)):    
+            out = ann.eval(x[i])
+            print(f"{i}. x = {x[i]}; y = {out[0]}; expect = {y[i]}; diff = {out[0]-y[i]})")
+
+        for l in range(len(ann.weight_mat_list)):
+                print(ann.weight_mat_list[l])    
+        
+        for epoch in range(1000):
+            for i in range(len(x)):    
+                ann.back_prop(y[i],x[i], 
+                learning_rate=.001)
+
+
+
     
-    train_input = np.random.uniform(low=(-5.0), high=(5.0), size=(30))
+    '''train_input = np.random.uniform(low=(-5.0), high=(5.0), size=(30))
     validate_input = np.random.uniform(low=(-5.0), high=(5.0), size=(10))
     test_input = np.linspace(start=(-5.0), stop=(5.0), num=200)
     
@@ -145,3 +166,4 @@ if __name__ == "__main__":
     
     print(f'after out: {np.mean(out)}')
     print(f'after cost: {ann.cost(out,test_output)}')
+'''
